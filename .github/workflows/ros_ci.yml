@@ -1,0 +1,20 @@
+name: Build
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build-and-test:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Setup ROS 2
+        uses: ros-tooling/setup-ros@v0.4
+        with:
+          required-ros-distributions: galactic
+      - name: Build license_detetor
+        uses: ros-tooling/action-ros-ci@v0.2
+        with:
+          package-name: license_detetor
+          target-ros2-distro: galactic
+          skip-tests: true
