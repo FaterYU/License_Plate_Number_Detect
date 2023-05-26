@@ -1,4 +1,0 @@
-/license_detetor:
-  ros__parameters:
-    image_path: /home/fate/project/license_detetor/src/license_detetor/img/test.jpg
-    fps: 24.0

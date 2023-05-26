@@ -1,5 +1,5 @@
-#ifndef LICENSE_DETETOR__LICENSE_DETETOR_HPP_
-#define LICENSE_DETETOR__LICENSE_DETETOR_HPP_
+#ifndef IMAGE_PUBLISHER__IMAGE_PUBLISHER_HPP_
+#define IMAGE_PUBLISHER__IMAGE_PUBLISHER_HPP_
 
 #include <cv_bridge/cv_bridge.h>
 
@@ -14,9 +14,9 @@
 #include <string>
 
 namespace license_detetor {
-class LicenseDetetor : public rclcpp::Node {
+class ImagePublisher : public rclcpp::Node {
  public:
-  explicit LicenseDetetor(const rclcpp::NodeOptions &options);
+  explicit ImagePublisher(const rclcpp::NodeOptions &options);
 
  private:
   void publish_image();
@@ -28,4 +28,4 @@ class LicenseDetetor : public rclcpp::Node {
 };
 }  // namespace license_detetor
 
-#endif  // LICENSE_DETETOR__LICENSE_DETETOR_HPP_
+#endif  // IMAGE_PUBLISHER__IMAGE_PUBLISHER_HPP_

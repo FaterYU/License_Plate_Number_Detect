@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(license_detetor)
+project(image_publisher)
 
 # # Use C++14
 set(CMAKE_CXX_STANDARD 14)
@@ -16,16 +16,12 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
-  src/license_detetor.cpp
+  DIRECTORY src
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}
-  PLUGIN license_detetor::LicenseDetetor
+  PLUGIN license_detetor::ImagePublisher
   EXECUTABLE ${PROJECT_NAME}_node
 )
 
-ament_auto_package(
-  INSTALL_TO_SHARE
-  launch
-  config
-)
+ament_auto_package()
