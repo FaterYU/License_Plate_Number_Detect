@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(license_extractor)
+project(license_extract)
 
 # # Use C++14
 set(CMAKE_CXX_STANDARD 14)
