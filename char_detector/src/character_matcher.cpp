@@ -4,7 +4,7 @@ namespace license_detector {
 CharacterMatcher::CharacterMatcher() { font_read(); }
 void CharacterMatcher::font_read() {
   std::string path =
-      "/home/fate/project/license_detetor/src/license_detector/char_detector/"
+      "/home/fate/project/license_detetor/src/char_detector/"
       "font";
   font_ch_name_ = {"澳", "京", "渝", "沪", "津", "冀", "晋", "蒙",
                    "辽", "吉", "黑", "苏", "浙", "皖", "闽", "赣",
