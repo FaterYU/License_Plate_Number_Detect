@@ -1,6 +1,6 @@
 #include <image_publisher/image_publisher.hpp>
 
-namespace license_detetor {
+namespace license_detector {
 ImagePublisher::ImagePublisher(const rclcpp::NodeOptions &options)
     : Node("image_publisher", options) {
   RCLCPP_INFO(this->get_logger(), "Start image_publisher_node");
@@ -13,13 +13,14 @@ ImagePublisher::ImagePublisher(const rclcpp::NodeOptions &options)
 }
 
 void ImagePublisher::publish_image() {
-  // RCLCPP_INFO(get_logger(), "Publishing image");
+  RCLCPP_DEBUG(get_logger(), "Publishing image");
   cv::Mat image = cv::imread(image_path, cv::IMREAD_COLOR);
-  auto msg =
-      cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", image).toImageMsg();
+  std_msgs::msg::Header header;
+  header.stamp = this->now();
+  auto msg = cv_bridge::CvImage(header, "bgr8", image).toImageMsg();
   image_pub_->publish(*msg);
 }
-}  // namespace license_detetor
+}  // namespace license_detector
 
 #include <rclcpp_components/register_node_macro.hpp>
-RCLCPP_COMPONENTS_REGISTER_NODE(license_detetor::ImagePublisher)
+RCLCPP_COMPONENTS_REGISTER_NODE(license_detector::ImagePublisher)

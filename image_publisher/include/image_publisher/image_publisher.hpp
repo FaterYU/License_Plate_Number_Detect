@@ -13,7 +13,7 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <string>
 
-namespace license_detetor {
+namespace license_detector {
 class ImagePublisher : public rclcpp::Node {
  public:
   explicit ImagePublisher(const rclcpp::NodeOptions &options);
@@ -26,6 +26,6 @@ class ImagePublisher : public rclcpp::Node {
   std::string image_path;
   double fps;
 };
-}  // namespace license_detetor
+}  // namespace license_detector
 
 #endif  // IMAGE_PUBLISHER__IMAGE_PUBLISHER_HPP_

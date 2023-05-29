@@ -12,9 +12,33 @@ jobs:
         uses: ros-tooling/setup-ros@v0.4
         with:
           required-ros-distributions: galactic
-      - name: Build license_detetor
+      - name: Build image_publisher
         uses: ros-tooling/action-ros-ci@v0.2
         with:
-          package-name: license_detetor
+          package-name: image_publisher
+          target-ros2-distro: galactic
+          skip-tests: true
+      - name: Build license_detector_interfaces
+        uses: ros-tooling/action-ros-ci@v0.2
+        with:
+          package-name: license_detector_interfaces
+          target-ros2-distro: galactic
+          skip-tests: true
+      - name: Build license_extract
+        uses: ros-tooling/action-ros-ci@v0.2
+        with:
+          package-name: license_extract
+          target-ros2-distro: galactic
+          skip-tests: true
+      - name: Build char_detector
+        uses: ros-tooling/action-ros-ci@v0.2
+        with:
+          package-name: char_detector
+          target-ros2-distro: galactic
+          skip-tests: true
+      - name: Build license_detector_bringup
+        uses: ros-tooling/action-ros-ci@v0.2
+        with:
+          package-name: license_detector_bringup
           target-ros2-distro: galactic
           skip-tests: true

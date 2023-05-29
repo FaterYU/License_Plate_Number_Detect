@@ -1,6 +1,6 @@
 #include <license_extract/license_extract.hpp>
 
-namespace license_detetor {
+namespace license_detector {
 LicenseExtract::LicenseExtract(const rclcpp::NodeOptions &options)
     : Node("license_extract", options) {
   RCLCPP_INFO(this->get_logger(), "Start license_extract_node");
@@ -10,13 +10,16 @@ LicenseExtract::LicenseExtract(const rclcpp::NodeOptions &options)
   blue_extractor_ = std::make_shared<Extractor>(
       cv::Scalar(0, 150, 0), cv::Scalar(255, 255, 255),
       cv::Scalar(100, 43, 120), cv::Scalar(124, 255, 255));
-  debug_image_pub_ =
-      this->create_publisher<sensor_msgs::msg::Image>("debug_image", 10);
+  debug_image_pub_ = this->create_publisher<sensor_msgs::msg::Image>(
+      "/extract/debug_image", 10);
+  license_char_image_pub_ =
+      this->create_publisher<license_detector_interfaces::msg::LicenseChar>(
+          "license_char_image", 10);
 }
 
 void LicenseExtract::image_callback(
     const sensor_msgs::msg::Image::SharedPtr msg) {
-  RCLCPP_INFO(this->get_logger(), "Received image");
+  // RCLCPP_DEBUG(this->get_logger(), "Received image");
   // to cv::Mat
   cv_bridge::CvImagePtr cv_ptr;
   try {
@@ -29,18 +32,28 @@ void LicenseExtract::image_callback(
 
   // image process
   std::vector<cv::Mat> result = blue_extractor_->image_process(image);
-  RCLCPP_INFO(this->get_logger(), "Result size: %ld", result.size());
+
+  std_msgs::msg::Header header;
+  header.stamp = msg->header.stamp;
+  // publish license char image
+  license_detector_interfaces::msg::LicenseChar license_char;
+  for (auto &i : result) {
+    auto msg = cv_bridge::CvImage(header, "mono8", i).toImageMsg();
+    license_char.license_image.push_back(*msg);
+  }
+  license_char_image_pub_->publish(license_char);
+  RCLCPP_DEBUG(this->get_logger(), "Publish license char image");
+
   // get debug binary image
-  cv::Mat debug_image = result[0];
+  cv::Mat debug_image = blue_extractor_->get_debug_image();
 
   auto debug_msg =
-      cv_bridge::CvImage(std_msgs::msg::Header(), "mono8", debug_image)
-          .toImageMsg();
+      cv_bridge::CvImage(header, "mono8", debug_image).toImageMsg();
   debug_image_pub_->publish(*debug_msg);
-  RCLCPP_INFO(this->get_logger(), "Publish debug image");
+  RCLCPP_DEBUG(this->get_logger(), "Publish debug image");
 }
 
-}  // namespace license_detetor
+}  // namespace license_detector
 
 #include <rclcpp_components/register_node_macro.hpp>
-RCLCPP_COMPONENTS_REGISTER_NODE(license_detetor::LicenseExtract)
+RCLCPP_COMPONENTS_REGISTER_NODE(license_detector::LicenseExtract)

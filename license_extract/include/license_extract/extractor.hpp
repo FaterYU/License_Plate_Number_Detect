@@ -7,7 +7,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp_components/register_node_macro.hpp>
 
-namespace license_detetor {
+namespace license_detector {
 class Extractor {
  public:
   explicit Extractor(cv::Scalar background_low, cv::Scalar background_high,
@@ -20,6 +20,8 @@ class Extractor {
   cv::Scalar background_high_;
   cv::Scalar text_low_;
   cv::Scalar text_high_;
+
+  cv::Mat origin_image_;
 
   cv::Mat background_mask_;
   cv::Mat text_mask_;
@@ -48,6 +50,6 @@ class Extractor {
   void get_char_image_list();
   void reset();
 };
-}  // namespace license_detetor
+}  // namespace license_detector
 
 #endif  // EXTRACTOR__EXTRACTOR_HPP_

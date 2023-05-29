@@ -7,7 +7,7 @@ from launch.actions import Shutdown
 
 def generate_launch_description():
     config = os.path.join(
-        get_package_share_directory('license_detetor_bringup'),
+        get_package_share_directory('license_detector_bringup'),
         'config',
         'image_publisher.yaml'
     )
@@ -32,7 +32,17 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', 'info']
     )
 
+    char_detector_node = Node(
+        package='char_detector',
+        executable='char_detector_node',
+        namespace='',
+        output='screen',
+        emulate_tty=True,
+        arguments=['--ros-args', '--log-level', 'info']
+    )
+
     return LaunchDescription([
         image_publisher_node,
-        license_extractor_node
+        license_extractor_node,
+        char_detector_node
     ])

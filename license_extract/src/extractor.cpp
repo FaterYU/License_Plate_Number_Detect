@@ -1,6 +1,6 @@
 #include <license_extract/extractor.hpp>
 
-namespace license_detetor {
+namespace license_detector {
 Extractor::Extractor(cv::Scalar background_low, cv::Scalar background_high,
                      cv::Scalar text_low, cv::Scalar text_high)
     : background_low_(background_low),
@@ -12,7 +12,7 @@ Extractor::Extractor(cv::Scalar background_low, cv::Scalar background_high,
 
 cv::Mat Extractor::get_debug_image() {
   cv::Mat debug_image = licence_plate_sig_bin_[0];
-  return debug_image;
+  return debug_image_;
 }
 
 std::vector<cv::Mat> Extractor::image_process(const cv::Mat &image) {
@@ -26,6 +26,7 @@ std::vector<cv::Mat> Extractor::image_process(const cv::Mat &image) {
 void Extractor::image_convert(const cv::Mat &image) {
   cv::Mat hls_image;
   cv::Mat hsv_image;
+  origin_image_ = image.clone();
   cv::cvtColor(image, hls_image, cv::COLOR_BGR2HLS);
   cv::cvtColor(image, hsv_image, cv::COLOR_BGR2HSV);
   cv::inRange(hls_image, background_low_, background_high_, background_mask_);
@@ -69,8 +70,8 @@ void Extractor::find_contours() {
       int blue_cnt = cv::countNonZero(blue_img);
       if (white_cnt < 0.3 * rect.width * rect.height &&
           blue_cnt > 0.3 * rect.width * rect.height &&
-          white_cnt + blue_cnt > 150 && is_license_plate(aim_image_(rect))) {
-        result_bgr_list_.push_back(aim_image_(rect));
+          white_cnt + blue_cnt > 150 && is_license_plate(origin_image_(rect))) {
+        result_bgr_list_.push_back(origin_image_(rect));
       }
     }
   }
@@ -157,7 +158,7 @@ void Extractor::get_char_image_list() {
     }
   }
   std::vector<cv::Rect> char_contours;
-  int avg_h = 0;
+  double avg_h = 0.0;
   for (auto i : reasonable_list) {
     cv::Mat output = cv::Mat::zeros(image.size(), CV_8UC1);
     cv::Mat mask = labels == i;
@@ -175,12 +176,11 @@ void Extractor::get_char_image_list() {
   avg_h = 1.0 * avg_h / reasonable_list.size();
   std::sort(char_contours.begin(), char_contours.end(),
             [](cv::Rect a, cv::Rect b) { return a.x < b.x; });
-  cv::Mat image_gray_bin;
-  cv::threshold(image_gray, image_gray_bin, 0, 255, cv::THRESH_BINARY);
-  int sum_result = cv::mean(image_gray_bin)[0];
+  double sum_result = cv::mean(image_gray).val[0];
   cv::Mat entire_image_gray_bin;
   cv::threshold(image_gray, entire_image_gray_bin,
                 sum_result + 0.16 * image.cols, 255, cv::THRESH_BINARY);
+  debug_image_ = entire_image_gray_bin;
   int width = 0;
   int height = 0;
 
@@ -213,10 +213,12 @@ void Extractor::get_char_image_list() {
     licence_plate_sig_bin_.push_back(licence_plate_sig_bin_tmp);
     licence_plate_sig_xywh.push_back(i);
   }
-  int avg_w = 0;
-  int avg_delta_x = 0;
+  double avg_w = 0;
+  avg_h = 0.0;
+  double avg_delta_x = 0.0;
   for (int i = 1; i < int(licence_plate_sig_xywh.size()); i++) {
     avg_w += licence_plate_sig_xywh[i].width;
+    avg_h += licence_plate_sig_xywh[i].height;
   }
   for (int i = 2; i < int(licence_plate_sig_xywh.size()) - 1; i++) {
     avg_delta_x += licence_plate_sig_xywh[i + 1].x -
@@ -224,15 +226,17 @@ void Extractor::get_char_image_list() {
                    licence_plate_sig_xywh[i].width;
   }
   avg_w = avg_w / (licence_plate_sig_xywh.size() - 1) * 1.1;
+  avg_h = avg_h / (licence_plate_sig_xywh.size() - 1) * 1.1;
   avg_delta_x = avg_delta_x / (licence_plate_sig_xywh.size() - 2);
   int x = licence_plate_sig_xywh[1].x - avg_delta_x - avg_w;
   int y = licence_plate_sig_xywh[1].y;
   x = std::max(0, x);
   y = std::max(0, y);
-  if (abs(licence_plate_sig_xywh[0].height - avg_h) / avg_h > 0.2 ||
-      abs(licence_plate_sig_xywh[0].width - avg_w) / avg_w > 0.3) {
-    cv::bitwise_not(entire_image_gray_bin(cv::Rect(x, y, avg_w, avg_h)),
-                    licence_plate_sig_bin_[0]);
+  if (1.0 * abs(licence_plate_sig_xywh[0].height - avg_h) / avg_h > 0.2 ||
+      1.0 * abs(licence_plate_sig_xywh[0].width - avg_w) / avg_w > 0.3) {
+    cv::bitwise_not(
+        entire_image_gray_bin(cv::Rect(x, y, int(avg_w), int(avg_h))),
+        licence_plate_sig_bin_[0]);
   }
 }
 
@@ -244,4 +248,4 @@ void Extractor::reset() {
   result_bgr_list_.clear();
   licence_plate_sig_bin_.clear();
 }
-}  // namespace license_detetor
+}  // namespace license_detector

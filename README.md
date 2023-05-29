@@ -11,7 +11,7 @@ An assignment of digital image processing
 ```bash
 colcon build --symlink-install
 source install/setup.zsh
-ros2 launch license_detetor license_detetor.launch.py
+ros2 launch license_detector license_detector.launch.py
 ```
 
 ```bash

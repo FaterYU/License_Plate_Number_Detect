@@ -4,6 +4,7 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include <image_transport/image_transport.hpp>
+#include <license_detector_interfaces/msg/license_char.hpp>
 #include <license_extract/extractor.hpp>
 #include <memory>
 #include <opencv2/highgui/highgui.hpp>
@@ -13,7 +14,7 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <string>
 
-namespace license_detetor {
+namespace license_detector {
 class LicenseExtract : public rclcpp::Node {
  public:
   explicit LicenseExtract(const rclcpp::NodeOptions &options);
@@ -24,7 +25,9 @@ class LicenseExtract : public rclcpp::Node {
   std::shared_ptr<Extractor> blue_extractor_;
 
   rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr debug_image_pub_;
+  rclcpp::Publisher<license_detector_interfaces::msg::LicenseChar>::SharedPtr
+      license_char_image_pub_;
 };
-}  // namespace license_detetor
+}  // namespace license_detector
 
 #endif  // LICENSE_EXTRACT__LICENSE_EXTRACT_HPP_

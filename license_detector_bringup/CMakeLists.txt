@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(license_detetor_bringup)
+project(license_detector_bringup)
 
 find_package(ament_cmake_auto REQUIRED)
 
