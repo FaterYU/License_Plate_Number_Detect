@@ -6,7 +6,7 @@ An assignment of digital image processing
 - OpenCV 4.5.1
 - ROS2 Galactic
 
-## Start
+## 启动
 
 ### 环境配置
 
@@ -42,3 +42,18 @@ ros2 launch license_detector_bringup license_detector_bringup.launch.py
 ```bash
 ros2 launch foxglove_bridge foxglove_bridge_launch.xml
 ```
+
+## 节点
+
+- [license_detector_bringup](/license_detector_bringup)
+    启动文件
+- [image_publisher](/image_publisher)
+    静态图像发布节点
+- [license_detector_interfaces](/license_detector_interfaces)
+    定义识别节点的接口及用于Debug的消息
+- [license_extract](/license_extract)
+    车牌检测并分割字符节点，订阅静态图像，发布二值化处理后的车牌字符图像
+- [char_detector](/char_detector)
+    车牌字符识别节点，订阅二值化处理后的车牌字符图像，发布识别结果
+
+[说明文档](./wiki/README.md)

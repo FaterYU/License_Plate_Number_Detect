@@ -10,34 +10,37 @@
 namespace license_detector {
 class Extractor {
  public:
-  explicit Extractor(cv::Scalar background_low, cv::Scalar background_high,
-                     cv::Scalar text_low, cv::Scalar text_high);
+  explicit Extractor(cv::Scalar text_low, cv::Scalar text_high,
+                     cv::Scalar background_low, cv::Scalar background_high,
+                     std::string text_color);
   std::vector<cv::Mat> image_process(const cv::Mat &image);
   cv::Mat get_debug_image();
 
  private:
-  cv::Scalar background_low_;
-  cv::Scalar background_high_;
   cv::Scalar text_low_;
   cv::Scalar text_high_;
+  cv::Scalar background_low_;
+  cv::Scalar background_high_;
+
+  std::string text_color_;
 
   cv::Mat origin_image_;
 
-  cv::Mat background_mask_;
   cv::Mat text_mask_;
+  cv::Mat background_mask_;
 
   cv::Mat aim_mask_;
   cv::Mat aim_image_;
   cv::Mat aim_image_gray_;
   cv::Mat aim_image_binary_;
 
-  cv::Mat background_image_;
-  cv::Mat background_image_gray_;
-  cv::Mat background_image_binary_;
-
   cv::Mat text_image_;
   cv::Mat text_image_gray_;
   cv::Mat text_image_binary_;
+
+  cv::Mat background_image_;
+  cv::Mat background_image_gray_;
+  cv::Mat background_image_binary_;
 
   std::vector<cv::Mat> result_bgr_list_;
   std::vector<cv::Mat> licence_plate_sig_bin_;

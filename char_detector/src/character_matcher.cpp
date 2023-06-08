@@ -105,8 +105,8 @@ std::string CharacterMatcher::match_character(
   std::vector<std::string> result;
   std::vector<int> hamming_distance;
   cv::Mat i = license_plate_sig_bin[0];
-  i = del_white(i);
   debug_img = i;
+  i = del_white(i);
   for (auto j : font_ch_) {
     int width = i.cols;
     int height = i.rows;

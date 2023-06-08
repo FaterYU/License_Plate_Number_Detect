@@ -1,17 +1,20 @@
 #include <license_extract/extractor.hpp>
 
 namespace license_detector {
-Extractor::Extractor(cv::Scalar background_low, cv::Scalar background_high,
-                     cv::Scalar text_low, cv::Scalar text_high)
-    : background_low_(background_low),
+Extractor::Extractor(cv::Scalar text_low, cv::Scalar text_high,
+                     cv::Scalar background_low, cv::Scalar background_high,
+                     std::string text_color)
+    : text_low_(text_low),
+      text_high_(text_high),
+      background_low_(background_low),
       background_high_(background_high),
-      text_low_(text_low),
-      text_high_(text_high) {
-  RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Start Extractor");
+      text_color_(text_color) {
+  RCLCPP_DEBUG(rclcpp::get_logger("rclcpp"), "Start Extractor");
 }
 
 cv::Mat Extractor::get_debug_image() {
-  cv::Mat debug_image = licence_plate_sig_bin_[0];
+  // cv::Mat debug_image = background_image_binary_;
+  // debug_image_ = debug_image;
   return debug_image_;
 }
 
@@ -29,13 +32,13 @@ void Extractor::image_convert(const cv::Mat &image) {
   origin_image_ = image.clone();
   cv::cvtColor(image, hls_image, cv::COLOR_BGR2HLS);
   cv::cvtColor(image, hsv_image, cv::COLOR_BGR2HSV);
-  cv::inRange(hls_image, background_low_, background_high_, background_mask_);
-  cv::inRange(hsv_image, text_low_, text_high_, text_mask_);
+  cv::inRange(hls_image, text_low_, text_high_, text_mask_);
+  cv::inRange(hsv_image, background_low_, background_high_, background_mask_);
 
   cv::Mat add_mask;
   cv::Mat sub_mask;
-  cv::add(background_mask_, text_mask_, add_mask);
-  cv::subtract(background_mask_, text_mask_, sub_mask);
+  cv::add(text_mask_, background_mask_, add_mask);
+  cv::subtract(text_mask_, background_mask_, sub_mask);
   cv::subtract(add_mask, sub_mask, aim_mask_);
 
   cv::bitwise_and(image, image, aim_image_, aim_mask_);
@@ -44,15 +47,15 @@ void Extractor::image_convert(const cv::Mat &image) {
                         cv::ADAPTIVE_THRESH_MEAN_C, cv::THRESH_BINARY_INV, 3,
                         2);
   double threshold_value = 30;
-  cv::bitwise_and(image, image, background_image_, background_mask_);
-  cv::cvtColor(background_image_, background_image_gray_, cv::COLOR_BGR2GRAY);
-  cv::threshold(background_image_gray_, background_image_binary_,
-                threshold_value, 255, cv::THRESH_BINARY);
-
   cv::bitwise_and(image, image, text_image_, text_mask_);
   cv::cvtColor(text_image_, text_image_gray_, cv::COLOR_BGR2GRAY);
   cv::threshold(text_image_gray_, text_image_binary_, threshold_value, 255,
                 cv::THRESH_BINARY);
+
+  cv::bitwise_and(image, image, background_image_, background_mask_);
+  cv::cvtColor(background_image_, background_image_gray_, cv::COLOR_BGR2GRAY);
+  cv::threshold(background_image_gray_, background_image_binary_,
+                threshold_value, 255, cv::THRESH_BINARY);
 }
 
 void Extractor::find_contours() {
@@ -64,9 +67,9 @@ void Extractor::find_contours() {
     cv::Rect rect = cv::boundingRect(contour);
     if (rect.width > 2.2 * rect.height && rect.width < 4 * rect.height &&
         rect.width > 50) {
-      cv::Mat white_img = background_image_binary_(rect);
+      cv::Mat white_img = text_image_binary_(rect);
       int white_cnt = cv::countNonZero(white_img);
-      cv::Mat blue_img = text_image_binary_(rect);
+      cv::Mat blue_img = background_image_binary_(rect);
       int blue_cnt = cv::countNonZero(blue_img);
       if (white_cnt < 0.3 * rect.width * rect.height &&
           blue_cnt > 0.3 * rect.width * rect.height &&
@@ -84,7 +87,10 @@ bool Extractor::is_license_plate(const cv::Mat &image) {
   for (int i = 60; i < 180; i++) {
     reasonable_list.clear();
     cv::Mat image_gray_bin;
-    cv::threshold(image_gray, image_gray_bin, i, 255, cv::THRESH_BINARY);
+    if (text_color_ == "white")
+      cv::threshold(image_gray, image_gray_bin, i, 255, cv::THRESH_BINARY);
+    else if (text_color_ == "black")
+      cv::threshold(image_gray, image_gray_bin, i, 255, cv::THRESH_BINARY_INV);
     cv::Mat labels;
     cv::Mat stats;
     cv::Mat centroids;
@@ -127,10 +133,15 @@ void Extractor::get_char_image_list() {
   cv::cvtColor(image, image_gray, cv::COLOR_BGR2GRAY);
   std::vector<int> reasonable_list;
   cv::Mat labels;
+  int threshold_value = 0;
   for (int i = 60; i < 180; i++) {
     reasonable_list.clear();
+    threshold_value = i;
     cv::Mat image_gray_bin;
-    cv::threshold(image_gray, image_gray_bin, i, 255, cv::THRESH_BINARY);
+    if (text_color_ == "white")
+      cv::threshold(image_gray, image_gray_bin, i, 255, cv::THRESH_BINARY);
+    else if (text_color_ == "black")
+      cv::threshold(image_gray, image_gray_bin, i, 255, cv::THRESH_BINARY_INV);
     cv::Mat stats;
     cv::Mat centroids;
     int num_labels = cv::connectedComponentsWithStats(image_gray_bin, labels,
@@ -153,7 +164,7 @@ void Extractor::get_char_image_list() {
       }
     }
     if (reasonable_list.size() >= 7 &&
-        num_labels - reasonable_list.size() < 20) {
+        num_labels - reasonable_list.size() < 15) {
       break;
     }
   }
@@ -176,10 +187,16 @@ void Extractor::get_char_image_list() {
   avg_h = 1.0 * avg_h / reasonable_list.size();
   std::sort(char_contours.begin(), char_contours.end(),
             [](cv::Rect a, cv::Rect b) { return a.x < b.x; });
-  double sum_result = cv::mean(image_gray).val[0];
+  // double sum_result = cv::mean(image_gray).val[0];
   cv::Mat entire_image_gray_bin;
-  cv::threshold(image_gray, entire_image_gray_bin,
-                sum_result + 0.16 * image.cols, 255, cv::THRESH_BINARY);
+  // cv::threshold(image_gray, entire_image_gray_bin,
+  //               sum_result + 0.16 * image.cols, 255, cv::THRESH_BINARY);
+  if (text_color_ == "white")
+    cv::threshold(image_gray, entire_image_gray_bin, threshold_value, 255,
+                  cv::THRESH_BINARY);
+  else if (text_color_ == "black")
+    cv::threshold(image_gray, entire_image_gray_bin, threshold_value, 255,
+                  cv::THRESH_BINARY_INV);
   debug_image_ = entire_image_gray_bin;
   int width = 0;
   int height = 0;
@@ -228,14 +245,15 @@ void Extractor::get_char_image_list() {
   avg_w = avg_w / (licence_plate_sig_xywh.size() - 1) * 1.1;
   avg_h = avg_h / (licence_plate_sig_xywh.size() - 1) * 1.1;
   avg_delta_x = avg_delta_x / (licence_plate_sig_xywh.size() - 2);
-  int x = licence_plate_sig_xywh[1].x - avg_delta_x - avg_w;
-  int y = licence_plate_sig_xywh[1].y;
-  x = std::max(0, x);
-  y = std::max(0, y);
+  double x = licence_plate_sig_xywh[1].x - avg_delta_x - avg_w;
+  double y = licence_plate_sig_xywh[1].y;
+  x = std::max(0.0, x);
+  y = std::max(0.0, y);
+  avg_w += int(x) + int(avg_w) == int(x + avg_w) ? 0 : 1;
   if (1.0 * abs(licence_plate_sig_xywh[0].height - avg_h) / avg_h > 0.2 ||
       1.0 * abs(licence_plate_sig_xywh[0].width - avg_w) / avg_w > 0.3) {
     cv::bitwise_not(
-        entire_image_gray_bin(cv::Rect(x, y, int(avg_w), int(avg_h))),
+        entire_image_gray_bin(cv::Rect(int(x), int(y), int(avg_w), int(avg_h))),
         licence_plate_sig_bin_[0]);
   }
 }

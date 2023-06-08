@@ -24,8 +24,8 @@ def generate_launch_description():
     )
 
     license_extractor_node = Node(
-        package='license_extractor',
-        executable='license_extractor_node',
+        package='license_extract',
+        executable='license_extract_node',
         namespace='',
         output='screen',
         emulate_tty=True,

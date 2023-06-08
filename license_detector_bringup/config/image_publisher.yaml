@@ -1,4 +1,7 @@
 /image_publisher:
   ros__parameters:
-    image_path: /home/fate/project/license_detetor/src/image_publisher/img/test.jpg
+    # image_path: /home/fate/project/license_detetor/src/image_publisher/img/test.jpg
+    # image_path: /home/fate/project/license_detetor/src/image_publisher/img/test_green.jpg
+    # image_path: /home/fate/project/license_detetor/src/image_publisher/img/test_yellow_2.jpg
+    image_path: /home/fate/project/license_detetor/src/image_publisher/img/test_jun.webp
     fps: 24.0

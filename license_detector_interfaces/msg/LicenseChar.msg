@@ -1,1 +1,2 @@
 sensor_msgs/Image[] license_image
+string license_plate_text_color
